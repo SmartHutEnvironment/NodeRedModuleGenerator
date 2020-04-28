@@ -3,7 +3,18 @@ defaults: &defaults
 
 version: 2
 jobs:
-  integrate:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run: docker build .
+  test:
+    machine: true
+    steps:
+      - checkout
+      - run: docker build --tag tmp:1.0 .
+      - run: docker run tmp:1.0
+  integration:
     machine: true
     steps:
       - checkout
@@ -32,9 +43,18 @@ workflows:
               ignore:
                 - master
           type: approval
-      - integrate:
+      - build:
           requires:
             - start_build
+      - test:
+          requires:
+            - build
+      - start_integration:
+          type: approval
+      - integration:
+          requires:
+            - start_integration
+            - test
           filters:
             branches:
               ignore:
