@@ -14,7 +14,7 @@ jobs:
       - checkout
       - run: docker build --tag tmp:1.0 .
       - run: docker run tmp:1.0
-  integrate:
+  integration:
     machine: true
     steps:
       - checkout
@@ -51,11 +51,10 @@ workflows:
             - build
       - start_integration:
           type: approval
-          requires:
-            - test
-      - integrate:
+      - integration:
           requires:
             - start_integration
+            - test
           filters:
             branches:
               ignore:
