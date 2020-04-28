@@ -1,0 +1,41 @@
+defaults: &defaults
+  working_directory: /tmp
+
+version: 2
+jobs:
+  integrate:
+    machine: true
+    steps:
+      - checkout
+      - run: .circleci/integrate.sh
+  tag:
+    machine: true
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/build
+      - run: mkdir -p artifacts
+      - run: cp /tmp/build/libgenerator.a artifacts
+      - run: git add artifacts
+      - run: git config --global user.email "circleci@stdio.work"
+      - run: git config --global user.name "CircleCI Agent"
+      - run: git commit -m "Artifacts"
+      - run: git tag -a v0.5.$CIRCLE_BUILD_NUM -m "Auto-tagged v0.5."$CIRCLE_BUILD_NUM
+      - run: git push origin --tags
+workflows:
+  version: 2
+  integrate:
+    jobs:
+      - start_build:
+          filters:
+            branches:
+              ignore:
+                - master
+          type: approval
+      - integrate:
+          requires:
+            - start_build
+          filters:
+            branches:
+              ignore:
+                - master

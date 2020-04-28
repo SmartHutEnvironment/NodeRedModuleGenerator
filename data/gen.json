@@ -1,0 +1,25 @@
+{
+    "nodes": [
+        { "source": "templates/state/setState/setState.json", "target": "lib/state/setState" },
+        { "source": "templates/state/stateChanged/stateChanged.json", "target": "lib/state/stateChanged" },
+        { "source": "templates/state/stateControl/stateControl.json", "target": "lib/state/stateControl" },
+        { "source": "templates/state/automatedLight/automatedLight.json", "target": "lib/state/automatedLight" },
+        { "source": "templates/state/readState/readState.json", "target": "lib/state/readState" },
+        { "source": "templates/state/state/state.json", "target": "lib/state/state" },
+        { "source": "templates/state/blockByState/blockByState.json", "target": "lib/state/blockByState" },
+
+        { "source": "templates/functional/toggle/toggle.json", "target": "lib/functional/toggle" },
+        { "source": "templates/functional/timer/timer.json", "target": "lib/functional/timer" },
+        { "source": "templates/functional/blockByTimer/blockByTimer.json", "target": "lib/functional/blockByTimer" },
+
+        { "source": "templates/xiaomi/mqtt/mqtt.json", "target": "lib/xiaomi/mqtt" },
+        { "source": "templates/xiaomi/motion/motion.json", "target": "lib/xiaomi/motion" },
+        { "source": "templates/xiaomi/switch/switch.json", "target": "lib/xiaomi/switch" },
+        { "source": "templates/xiaomi/doubleSwitch/doubleSwitch.json", "target": "lib/xiaomi/doubleSwitch" },
+        { "source": "templates/xiaomi/powerOutlet/powerOutlet.json", "target": "lib/xiaomi/powerOutlet" }
+
+    ],
+    "extra-nodes": {
+        "getState": "lib/state/getState.js"
+    }
+}
