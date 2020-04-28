@@ -3,6 +3,11 @@ defaults: &defaults
 
 version: 2
 jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run: docker build .
   integrate:
     machine: true
     steps:
@@ -32,9 +37,14 @@ workflows:
               ignore:
                 - master
           type: approval
-      - integrate:
+      - build:
           requires:
             - start_build
+      - start_integration:
+          type: approval
+      - integrate:
+          requires:
+            - start_integration
           filters:
             branches:
               ignore:
