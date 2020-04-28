@@ -13,7 +13,7 @@ jobs:
     steps:
       - checkout
       - run: docker build --tag tmp:1.0 .
-      - run: docker run tag:1.0
+      - run: docker run tmp:1.0
   integrate:
     machine: true
     steps:
