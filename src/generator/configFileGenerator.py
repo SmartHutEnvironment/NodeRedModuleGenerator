@@ -1,78 +1,118 @@
-import yaml, json;
-
-class ComplexEncoder(json.JSONEncoder):
-    def default(self, obj):
-        print("default is called");
-        if isinstance(obj, str) and obj.startswith("function"):
-        	print("----");
-        	return obj;
-        # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)
+import yaml;
+import json;
 
 class NodeConfig:
 	def __init__(self, configFilePath):
 		configFile = open(configFilePath);
-		self.config = yaml.load(configFile.read())["node"];
+		self.config = yaml.load(configFile.read(), Loader=yaml.SafeLoader)["node"];
 		configFile.close();
 
 	def GenerateSchema(self):
 		result = {};
-		result["label"] = self.config["name"];
-		result["oneditsave"] = self.config["onEditSave"];
-		return json.dumps(result, cls=ComplexEncoder);
 
+		appendConfig(self.config, result, "name", dstName="label", required=True);
+		appendConfig(self.config, result, "category", required=True);
+		appendConfig(self.config, result, "onEditSave", dstName="oneditsave");
 
-	def GenerateFields(self):
-		fieldsLayout = "";
-		defaults = "{";
-		for field in self.json['fields']:
-			if field["type"] == "enum":
-				fieldsLayout += f"""\t<div class="form-row"> <label for="node-{"config-" if self.isConfig else ""}input-{field['id']}"><i style="width:20px; text-align:left;" class="icon-tag"></i> {field['label']}</label><select id="node-{"config-" if self.isConfig else ""}input-{field['id']}">""";
-				for option in field["values"]:
-					fieldsLayout += f"""<option value="{option}">{option}</option>"""
-				fieldsLayout += f"""</select></div>\n""";
-			else:
-				fieldsLayout += f"""\t<div class="form-row"> <label for="node-{"config-" if self.isConfig else ""}input-{field['id']}"><i style="width:20px; text-align:left;" class="icon-tag"></i> {field['label']}</label> <input type="{field['type']}" id="node-{"config-" if self.isConfig else ""}input-{field['id']}" placeholder="{field['label']}"> </div>\n""";
+		for key in ["align", "color", "icon", "inputs", "outputs"]:
+			appendConfig(self.config, result, key);
 
-			defaults += f"""{field['id']}: {{ """;
-			if 'default' in field:
-				defaults += "value: \"" + field['default'] + "\", ";
-			if 'dataType' in field:
-				defaults += "type: \"" + field['dataType'] + "\", ";
-			if 'required' in field:
-				defaults += "required: " + ("true" if field['required'] else "false") + ", ";
-			if 'validate' in field:
-				defaults += "validate: " + field['validate'] + ", ";
-			
-			defaults += "}, ";
-		defaults += "}";
+		result["defaults"] = self.GetSchemaDefaults();
 
-		self.fieldsDefault = defaults;
-		self.fieldsLayout = fieldsLayout;
+		data = json.dumps(result, indent=4);
+		data = data.replace("\">>>", "");
+		data = data.replace("<<<\"", "");
+		return data;
 
-	def GetSchema(self):
-		if 'label' not in self.json:
-			self.json['label'] = f"""function() {{ if(this.name) return this.name; else return "{self.name}";}}""";
-		if 'paletteLabel' not in self.json:
-			self.json['paletteLabel'] = f""" "{self.name}" """;
+	def GetSchemaDefaults(self):
+		result = {};
 
-		result = f"""{{
-			category: '{self.json['category']}',
-			defaults: {self.fieldsDefault},
-			label: {self.json['label']},
-			{ "paletteLabel: " + self.json['paletteLabel'] + "," if "paletteLabel" in self.json else ""}
-			{ "oneditsave: " + self.json['onSave'] + "," if "onSave" in self.json else ""}
-			{ "oneditresize: " + self.json['onEdit'] + "," if "onEdit" in self.json else ""}
+		for p in self.config["properties"]:
+			cfg = self.config["properties"][p];
+			data = {};
 
-			{ "inputs: " + str(self.json['inputs']) + "," if "inputs" in self.json else ""}
-			{ "outputs: " + str(self.json['outputs']) + "," if "outputs" in self.json else ""}
-			{ "icon: '" + self.json['icon'] + "'," if "icon" in self.json else ""}
-			{ "color: '" + self.json['color'] + "'," if "color" in self.json else ""}
-			{ "align: '" + self.json['align'] + "'," if "align" in self.json else ""}
-		}}""";
+			appendConfig(cfg, data, "default", dstName="value");
+			appendConfig(cfg, data, "required");
+			appendConfig(cfg, data, "type");
+			appendConfig(cfg, data, "validate");
+
+			result[p] = data;
+
+		return result;
+
+	def GenerateHTML(self):
+		ui = self.ProcessFields(self.config["ui"]);
+		html = f"""<script type="text/x-red" data-template-name="{self.config["id"]}">
+{ui}
+</script>
+""";
+		return html;
+
+	def ProcessFields(self, src):
+		prefix = "node-config-input" if self.config["category"] == "config" else "node-input";
+		result = "";
+		for field in src:
+			if not "field" in field:
+				continue;
+			name = field["field"];
+			data = self.config["properties"][name];
+			if data["input"] == "text":
+				result += textInput(prefix, name, data["label"]);
+			if data["input"] == "enum":
+				result += selectOption(prefix, name, data["label"], data["options"], default=(data["default"] if "default" in data else None))
+
 		return result;
 	
 	def GenerateConfig(self):
-		print(self.GenerateSchema());
-		#self.GenerateUI();
-		return
+		schema = self.GenerateSchema();
+
+		script = f"""
+<script type="text/javascript">
+RED.nodes.registerType('{self.config["id"]}', {schema});
+</script>
+"""
+
+		return script + self.GenerateHTML();
+
+def appendConfig(src, dst, srcName, dstName=None, required=False, default=None):
+		if dstName == None:
+			dstName = srcName;
+
+		if not srcName in src:
+			if required:
+				raise Exception("missing key");
+			else:
+				return;
+
+		value = src[srcName];
+		if isinstance(value, str) and value.startswith("function"):
+			value = ">>>" + value + "<<<";
+		dst[dstName] = value;
+
+def textInput(prefix, name, label, placeholder=""):
+	name = prefix + "-" + name;
+	return f"""<div class="form-row">
+	<label for="{name}">
+		<i style="width:20px; text-align:left;" class="icon-tag"></i> 
+		{label}
+	</label>
+	<input type="text" id="{name}" placeholder="{placeholder}"> 
+</div>
+""";
+
+def selectOption(prefix, name, label, options, default=None):
+	name = prefix + "-" + name;
+	optionsHTML = "";
+	for option in options:
+		optionsHTML += f"""		<option value="{option}" {"selected" if option == default else ""}>{option}</option>""" + "\r\n";
+
+	return f"""<div class="form-row">
+	<label for="{name}">
+		<i style="width:20px; text-align:left;" class="icon-tag"></i> 
+		{label}
+	</label>
+	<select id="{name}">
+{optionsHTML}
+	</select>
+</div>
+""";
