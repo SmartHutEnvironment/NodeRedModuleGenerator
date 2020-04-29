@@ -1,0 +1,14 @@
+package:
+  name: name
+  version: 1.0.0
+  description: none
+  author: klein
+  dependencies:
+    - mqtt: 3.0.0
+  homepage: url
+  nodes:
+    - states/state
+  resources:
+    - id: id
+      source: a.js
+      target: a/b.js

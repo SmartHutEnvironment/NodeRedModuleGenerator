@@ -1,0 +1,29 @@
+node:
+  id: State
+  name: State
+  category: config
+  color: \#FFCC11
+  onEditSave: function () { this.name = $('#node-input-name').text(); }
+  properties:
+    name:
+      label: Name
+      type: text
+      required: true
+      default: ""
+    source:
+      label: Type
+      type: enum
+      options:
+        - Memory
+        - Mqtt State
+        - Mqtt Event
+      default: Memory
+  ui:
+    - field: name
+    - field: source
+    - group:
+        requires:
+          config: source
+          notToBe: Memory
+        ui:
+          - field: topic

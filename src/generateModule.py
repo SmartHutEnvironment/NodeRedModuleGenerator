@@ -1,11 +1,42 @@
-import json;
+#!/usr/bin/python3
+import yaml;
+import sys;
+import os.path;
+from generator import configFileGenerator;
+
+if len(sys.argv) != 3:
+    print("Usage: ", sys.argv[0], " templateDirectory outputDirectory");
+    exit(1);
+
+sourcePackageFile = open(sys.argv[1] + "/package.yml");
+package = yaml.load(sourcePackageFile.read())["package"];
+sourcePackageFile.close();
+
+print(package);
+
+for nodePath in package["nodes"]:
+    path = os.path.abspath(sys.argv[1] + "/" + nodePath);
+    basename = os.path.basename(path);
+
+    print(nodePath);
+
+    config = configFileGenerator.NodeConfig(path + "/" + basename + ".yml");
+    config.GenerateConfig();
+
+for resource in package["resources"]:
+    print(resource);
+
+
+
+
+
+
+
+
+exit(0);
 import os;
 import os.path;
 from generator import generate;
-
-f = open("gen.json");
-data = json.load(f);
-f.close();
 
 print("Start processing of", len(data['nodes']), "nodes");
 
