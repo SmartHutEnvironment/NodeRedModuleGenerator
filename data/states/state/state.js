@@ -1,9 +1,3 @@
-let RED;
-const state = module.exports = function(red) {
-	RED = red;
-	RED.nodes.registerType("fk-state", State);
-}
-
 let base = require("@resource:baseClasses");
 
 class @env:className {
