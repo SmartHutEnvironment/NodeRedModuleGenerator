@@ -1,0 +1,81 @@
+node:
+  id: fk-state
+  name: State
+  category: config
+  color: '#FFCC11'
+  onEditSave: function() { this.name = $('#node-input-name').text(); }
+  properties:
+    name:
+      label: Name
+      input: text
+      required: true
+      default: ""
+    source:
+      label: Type
+      input: enum
+      options:
+        - Memory
+        - Mqtt State
+        - Mqtt Event
+      default: Memory
+    mqtt:
+      label: Mqtt server
+      input: text
+      default: ""
+      type: fk-mqtt
+    mqtt_topic:
+      label: Topic
+      input: text
+      default: ""
+    mqtt_type:
+      label: Mqtt type
+      input: enum
+      options:
+        - Single
+        - Double - left
+        - Double - right
+      default: Single
+    mqtt_event_type:
+      label: Mqtt event type
+      input: enum
+      options:
+        - Motion
+        - Click
+        - Double click
+      default: Motion
+    mode:
+      label: Mode
+      input: enum
+      options:
+        - Boolean
+        - Timer
+        - Counter
+        - List
+      default: Boolean
+    timeout:
+      label: Timeout
+      input: text
+      default: ""
+    allowResetTimer:
+      label: Reset timer
+      input: text
+      default: ""
+    initialState:
+      label: Initial state
+      input: text
+      default: ""
+    toggle:
+      label: Toggle
+      input: text
+      default: ""
+  ui:
+    - field: name
+    - field: source
+    - field: mqtt
+    - field: mqtt_type
+    - field: mqtt_event_type
+    - field: mode
+    - field: timeout
+    - field: allowResetTimer
+    - field: initialState
+    - field: toggle

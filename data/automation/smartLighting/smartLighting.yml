@@ -1,0 +1,31 @@
+node:
+  id: fk-smart-lighting
+  name: Smart Lighting
+  category: Automation
+  color: '#FFCC11'
+  properties:
+    trigger:
+      label: Trigger
+      input: text
+      required: true
+      type: fk-state
+    light:
+      label: Light state
+      input: text
+      required: true
+      type: fk-state
+    forced:
+      label: Forced state
+      input: text
+      required: true
+      type: fk-state
+    condition:
+      label: Condition state
+      input: text
+      required: true
+      type: fk-state
+  ui:
+    - field: trigger
+    - field: light
+    - field: forced
+    - field: condition

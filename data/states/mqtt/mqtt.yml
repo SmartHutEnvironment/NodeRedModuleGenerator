@@ -1,0 +1,25 @@
+node:
+  id: fk-mqtt
+  name: Mqtt
+  category: config
+  color: '#FFCC11'
+  properties:
+    name:
+      label: Name
+      input: text
+      required: true
+      default: ""
+    host:
+      label: Hostname
+      input: text
+      required: true
+      default: "localhost"
+    port:
+      label: Port number
+      input: text
+      required: true
+      default: "1880"
+  ui:
+    - field: name
+    - field: host
+    - field: port
