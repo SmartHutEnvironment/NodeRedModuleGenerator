@@ -54,7 +54,7 @@ for node in package["nodes"]:
         f.write(config.GenerateConfig());
     with open(dst + "/" + js, 'w') as f:
         f.write(script.GetJsFile());
-    nodes[config.config["id"]] = js;
+    nodes[config.config["id"]] = node["to"] + "/" + js;
 
 
 npmPackage = {};
