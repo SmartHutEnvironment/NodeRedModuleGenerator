@@ -13,6 +13,8 @@ class NodeConfig:
 		appendConfig(self.config, result, "name", dstName="label", required=True);
 		appendConfig(self.config, result, "category", required=True);
 		appendConfig(self.config, result, "onEditSave", dstName="oneditsave");
+		appendConfig(self.config, result, "onEditPrepare", dstName="oneditprepare");
+		appendConfig(self.config, result, "onEditResize", dstName="oneditresize");
 
 		for key in ["align", "color", "icon", "inputs", "outputs"]:
 			appendConfig(self.config, result, key);
