@@ -1,11 +1,22 @@
 import yaml;
 import json;
+import os.path;
+import re;
 
 class NodeConfig:
 	def __init__(self, configFilePath):
+		self.path = os.path.dirname(configFilePath);
 		configFile = open(configFilePath);
 		self.config = yaml.load(configFile.read(), Loader=yaml.SafeLoader)["node"];
 		configFile.close();
+
+		self.htmlScript = None;
+		htmlPath = os.path.dirname(configFilePath) + "/html.js";
+		print(htmlPath);
+		if os.path.exists(htmlPath):
+			script = open(htmlPath);
+			self.htmlScript = script.read();
+			script.close();
 
 	def GenerateSchema(self):
 		result = {};
@@ -68,7 +79,27 @@ class NodeConfig:
 	def GenerateConfig(self):
 		schema = self.GenerateSchema();
 
-		script = f"""
+		script = "";
+
+		if self.htmlScript != None:
+			match = re.search("\@include\(\"(.*?)\"\)", self.htmlScript);
+			while match:
+				target = self.path + "/" + match.group(1);
+				if os.path.exists(target):
+					f = open(target);
+					text = f.read();
+					f.close();
+					self.htmlScript = self.htmlScript.replace(match.group(0), text);
+				else:
+					print("File not found: ", target);
+				match = re.search("\@include\(\"(.*?)\"\)", self.htmlScript);
+
+			script += f"""
+<script type="text/javascript">
+{self.htmlScript}
+</script>""";
+
+		script += f"""
 <script type="text/javascript">
 RED.nodes.registerType('{self.config["id"]}', {schema});
 </script>
