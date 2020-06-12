@@ -1,11 +1,22 @@
 import yaml;
 import json;
+import os.path;
+import re;
 
 class NodeConfig:
 	def __init__(self, configFilePath):
+		self.path = os.path.dirname(configFilePath);
 		configFile = open(configFilePath);
 		self.config = yaml.load(configFile.read(), Loader=yaml.SafeLoader)["node"];
 		configFile.close();
+
+		self.htmlScript = None;
+		htmlPath = os.path.dirname(configFilePath) + "/html.js";
+		print(htmlPath);
+		if os.path.exists(htmlPath):
+			script = open(htmlPath);
+			self.htmlScript = script.read();
+			script.close();
 
 	def GenerateSchema(self):
 		result = {};
@@ -16,7 +27,7 @@ class NodeConfig:
 		appendConfig(self.config, result, "onEditPrepare", dstName="oneditprepare");
 		appendConfig(self.config, result, "onEditResize", dstName="oneditresize");
 
-		for key in ["align", "color", "icon", "inputs", "outputs"]:
+		for key in ["align", "color", "icon", "inputs", "outputs", "paletteLabel"]:
 			appendConfig(self.config, result, key);
 
 		result["defaults"] = self.GetSchemaDefaults();
@@ -62,13 +73,35 @@ class NodeConfig:
 				result += textInput(prefix, name, data["label"]);
 			if data["input"] == "enum":
 				result += selectOption(prefix, name, data["label"], data["options"], default=(data["default"] if "default" in data else None))
+			if data["input"] == "list":
+				result += editableList(prefix, name, data["label"], None, None)
 
 		return result;
 	
 	def GenerateConfig(self):
 		schema = self.GenerateSchema();
 
-		script = f"""
+		script = "";
+
+		if self.htmlScript != None:
+			match = re.search("\@include\(\"(.*?)\"\)", self.htmlScript);
+			while match:
+				target = self.path + "/" + match.group(1);
+				if os.path.exists(target):
+					f = open(target);
+					text = f.read();
+					f.close();
+					self.htmlScript = self.htmlScript.replace(match.group(0), text);
+				else:
+					print("File not found: ", target);
+				match = re.search("\@include\(\"(.*?)\"\)", self.htmlScript);
+
+			script += f"""
+<script type="text/javascript">
+{self.htmlScript}
+</script>""";
+
+		script += f"""
 <script type="text/javascript">
 RED.nodes.registerType('{self.config["id"]}', {schema});
 </script>
@@ -116,5 +149,18 @@ def selectOption(prefix, name, label, options, default=None):
 	<select id="{name}">
 {optionsHTML}
 	</select>
+</div>
+""";
+
+def editableList(prefix, name, label, options, default=None):
+	name = prefix + "-" + name;
+	
+	return f"""<div class="form-row">
+	<label for="{name}">
+		<i style="width:20px; text-align:left;" class="icon-tag"></i> 
+		{label}
+	</label>
+	<ol id="{name}">
+	</ol>
 </div>
 """;
