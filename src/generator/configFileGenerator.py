@@ -27,7 +27,7 @@ class NodeConfig:
 		appendConfig(self.config, result, "onEditPrepare", dstName="oneditprepare");
 		appendConfig(self.config, result, "onEditResize", dstName="oneditresize");
 
-		for key in ["align", "color", "icon", "inputs", "outputs"]:
+		for key in ["align", "color", "icon", "inputs", "outputs", "paletteLabel"]:
 			appendConfig(self.config, result, key);
 
 		result["defaults"] = self.GetSchemaDefaults();
@@ -73,6 +73,8 @@ class NodeConfig:
 				result += textInput(prefix, name, data["label"]);
 			if data["input"] == "enum":
 				result += selectOption(prefix, name, data["label"], data["options"], default=(data["default"] if "default" in data else None))
+			if data["input"] == "list":
+				result += editableList(prefix, name, data["label"], None, None)
 
 		return result;
 	
@@ -147,5 +149,18 @@ def selectOption(prefix, name, label, options, default=None):
 	<select id="{name}">
 {optionsHTML}
 	</select>
+</div>
+""";
+
+def editableList(prefix, name, label, options, default=None):
+	name = prefix + "-" + name;
+	
+	return f"""<div class="form-row">
+	<label for="{name}">
+		<i style="width:20px; text-align:left;" class="icon-tag"></i> 
+		{label}
+	</label>
+	<ol id="{name}">
+	</ol>
 </div>
 """;
